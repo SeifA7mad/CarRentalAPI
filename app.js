@@ -4,6 +4,8 @@ const dotenv = require('dotenv').config();
 const cors = require('cors');
 const mongoose = require('mongoose');
 
+const adminRouter = require('./routes/admin');
+
 const serverPort = process.env.SERVER_PORT;
 const DBUser = process.env.DB_USER;
 const DBPass = process.env.DB_PASS;
@@ -12,9 +14,11 @@ const DBPass = process.env.DB_PASS;
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 app.use(cors());
 
+app.use('/admin', adminRouter);
 
 mongoose
   .connect(
