@@ -41,8 +41,8 @@ exports.postAddVehicle = (req, res, next) => {
 
 //GET VEHICLES
 exports.getVehicles = (req, res, next) => {
-  Vehicle.find()
-    .select('title imgURL year availableCount')
+  Vehicle
+  .find({}, 'title imgURL year availableCount')
     .then((vehicles) => {
       res.send(vehicles);
     })
@@ -64,14 +64,14 @@ exports.getVehicle = (req, res, next) => {
 exports.getEditVehicle = (req, res, next) => {
   const editMode = req.query.edit;
   if (!editMode) {
-    return res.redirect('/');
+    return res.redirect('/admin/vehicles');
   }
   const vehicleId = req.params.vehicleId;
 
   Vehicle.findById(vehicleId)
     .then((vehicle) => {
       if (!vehicle) {
-        return res.redirect('/');
+        return res.redirect('/admin/vehicles');
       }
       res.send(vehicle);
     })

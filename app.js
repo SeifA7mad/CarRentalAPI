@@ -5,6 +5,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 
 const adminRouter = require('./routes/admin');
+const storeRouter = require('./routes/store');
 
 const serverPort = process.env.SERVER_PORT;
 const DBUser = process.env.DB_USER;
@@ -19,6 +20,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 app.use('/admin', adminRouter);
+app.use('/store', storeRouter);
 
 mongoose
   .connect(
