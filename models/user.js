@@ -26,7 +26,7 @@ const userSchema = new Schema({
       required: false,
     },
   },
+  paymentMethods: [],
 });
-
 
 module.exports = mongoose.model('User', userSchema);

@@ -14,4 +14,6 @@ router.get(
   storeController.getRecommendVehicle
 );
 
+router.post('/place-order', storeController.postPlaceOrder);
+
 module.exports = router;
