@@ -1,6 +1,5 @@
-const stripe = require('stripe')(process.env.STRIPE_APIKEY);
-
 const Vehicle = require('../models/vehicle');
+const Order = require('../models/order');
 
 //GET VEHICLES
 exports.getVehicles = (req, res, next) => {
@@ -43,76 +42,97 @@ exports.getRecommendVehicle = (req, res, next) => {
     .catch((err) => console.log(err));
 };
 
-exports.postPlaceOrder = async (req, res, next) => {
-  const ongoingReturnDate = req.user.reservations.ongoingReturnDate;
-
-  if (ongoingReturnDate != null) {
-    return res.redirect('/store');
-  }
-
-  const vehicleId = req.body.vehicleId;
-
+//HELPER FUNCTION CREATE ORDER
+const createOrderHelperFunction = (orderDetails) => {
   const {
     pickingDate,
     returningDate,
     pickingLocation,
     requestDriver,
     requestInsurance,
-  } = req.body.orderDetails;
+    totalPrice,
+    charge,
+    user,
+    vehicle,
+  } = orderDetails;
+  const date = new Date().toLocaleDateString();
+
+  const order = new Order({
+    vehicle: vehicle,
+    user: {
+      name: user.name,
+      userId: user,
+    },
+    trackingDetails: {
+      status: 'preparing',
+      pickingDate: pickingDate,
+      pickingLocation: pickingLocation,
+      returningDate: returningDate,
+    },
+    additionalServices: {
+      requestDriver: requestDriver,
+      requestInsurance: requestInsurance,
+    },
+    totalPrice: totalPrice,
+    orderDate: date,
+    invoice: charge,
+  });
+
+  return order.save();
+};
+
+//POST PLACEORDER
+exports.postPlaceOrder = (req, res, next) => {
+  const ongoingReturnDate = req.user.reservations.ongoingReturnDate;
+
+  if (ongoingReturnDate != '') {
+    return res.redirect('/store');
+  }
+
+  const vehicleId = req.body.vehicleId;
+
+  const { pickingDate, returningDate, requestDriver, requestInsurance } =
+    req.body.orderDetails;
 
   const pickingDateObj = new Date(pickingDate);
   const returningDateObj = new Date(returningDate);
 
+  // get the vehilce reserved days
   const reservedDays =
     (returningDateObj.getTime() - pickingDateObj.getTime()) /
     (1000 * 3600 * 24);
 
-  const { cardNumber, expiryMonth, expiryYear, cardCvc } =
-    req.body.paymentDetails;
+  Vehicle.findById(vehicleId)
+    .then((vehicle) => {
+      const totalPrice =
+        reservedDays * vehicle.price +
+        (requestDriver ? 50 : 0) +
+        (requestInsurance ? 100 : 0);
 
-  try {
-    const paymentMethod = await stripe.paymentMethods.create({
-      type: 'card',
-      card: {
-        number: cardNumber,
-        exp_month: expiryMonth,
-        exp_year: expiryYear,
-        cvc: cardCvc,
-      },
-    });
-
-    const vehicle = await Vehicle.findById(vehicleId);
-    const totalPrice =
-      reservedDays * vehicle.price +
-      (requestDriver ? 50 : 0) +
-      (requestInsurance ? 100 : 0);
-
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: totalPrice,
-      currency: 'usd',
-      payment_method_types: ['card'],
-      payment_method: paymentMethod.id,
-      receipt_email: req.user.email,
-    });
-
-    const paymentIntentConfirmation = await stripe.paymentIntents.confirm(
-      paymentIntent.id,
-      { payment_method: paymentMethod.id }
-    );
-
-    console.log(paymentIntentConfirmation);
-  } catch (err) {
-    console.log(err);
-  }
-
-  // Vehicle.findById(vehicleId)
-  //   .then((vehicle) => {
-  //     const totalPrice =
-  //       reservedDays * vehicle.price +
-  //       (requestDriver ? 50 : 0) +
-  //       (requestInsurance ? 100 : 0);
-  //   })
-  //   .catch((err) => console.log(err));
+      req.user
+        .makePayment(req.body.paymentDetails, totalPrice)
+        .then((charge) => {
+          createOrderHelperFunction({
+            ...req.body.orderDetails,
+            totalPrice: totalPrice,
+            charge: charge,
+            user: req.user,
+            vehicle: vehicle,
+          })
+            .then((order) => {
+              req.user
+                .addNewOrder(order)
+                .then((results) => {
+                  vehicle.useVehicle();
+                  res.redirect('/orders');
+                })
+                .catch((err) => console.log(err));
+            })
+            .catch((err) => console.log(err));
+        })
+        .catch((err) => console.log(err));
+    })
+    .catch((err) => console.log(err));
 };
 
 // stripe.checkout.sessions

@@ -21,7 +21,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 app.use((req, res, next) => {
-  User.findById('61cb35122d679f42045b99b7')
+  User.findById('61cb7da60f7379bbc28e812c')
     .then((user) => {
       req.user = user;
       next();
@@ -44,7 +44,7 @@ mongoose
           email: 'Seif@test.com',
           reservations: {
             orders: [],
-            ongoingReturnDate: null,
+            ongoingReturnDate: '',
           },
         });
         user.save();

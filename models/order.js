@@ -54,7 +54,7 @@ const orderSchema = new Schema({
     type: String,
     required: true,
   },
-  payment: {
+  invoice: {
     type: Object,
     required: true,
   },

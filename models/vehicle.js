@@ -45,4 +45,22 @@ const vehicleSchema = new Schema({
   }
 });
 
+vehicleSchema.methods.useVehicle = function() {
+  let availableCount = this.availableCount;
+  const updatedAvailableCount = --availableCount;
+
+  this.availableCount = updatedAvailableCount;
+
+  return this.save();
+}
+
+vehicleSchema.methods.unuseVehicle = function () {
+  let availableCount = this.availableCount;
+  const updatedAvailableCount = ++availableCount;
+
+  this.availableCount = updatedAvailableCount;
+
+  return this.save();
+};
+
 module.exports = mongoose.model('Vehicle', vehicleSchema);
