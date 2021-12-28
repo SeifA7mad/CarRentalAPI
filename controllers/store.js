@@ -1,3 +1,4 @@
+const stripe = require('stripe')(process.env.STRIPE_APIKEY);
 const Vehicle = require('../models/vehicle');
 const Order = require('../models/order');
 
@@ -86,7 +87,7 @@ exports.postPlaceOrder = (req, res, next) => {
   const ongoingReturnDate = req.user.reservations.ongoingReturnDate;
 
   if (ongoingReturnDate != '') {
-    return res.redirect('/store');
+    return res.redirect('/store/orders');
   }
 
   const vehicleId = req.body.vehicleId;
@@ -111,24 +112,24 @@ exports.postPlaceOrder = (req, res, next) => {
 
       req.user
         .makePayment(req.body.paymentDetails, totalPrice)
-        .then((charge) => {
-          createOrderHelperFunction({
-            ...req.body.orderDetails,
-            totalPrice: totalPrice,
-            charge: charge,
-            user: req.user,
-            vehicle: vehicle,
-          })
-            .then((order) => {
-              req.user
-                .addNewOrder(order)
-                .then((results) => {
-                  vehicle.useVehicle();
-                  res.redirect('/orders');
-                })
-                .catch((err) => console.log(err));
-            })
-            .catch((err) => console.log(err));
+        .then(async (charge) => {
+          try {
+            const order = await createOrderHelperFunction({
+              ...req.body.orderDetails,
+              totalPrice: totalPrice,
+              charge: charge,
+              user: req.user,
+              vehicle: vehicle,
+            });
+            req.user.addNewOrder(order);
+            vehicle.useVehicle();
+            res.redirect('/orders');
+          } catch (err) {
+            const refund = await stripe.refunds.create({
+              charge: charge.id,
+            });
+            console.log(err);
+          }
         })
         .catch((err) => console.log(err));
     })

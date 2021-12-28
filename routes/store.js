@@ -8,12 +8,13 @@ router.get('/vehicles', storeController.getVehicles);
 //get-vehicle ==> POST
 router.get('/vehicle/:vehicleId', storeController.getVehicle);
 
-//recomend-vehicle
+//recomend-vehicle ==> GET
 router.get(
   '/recommend-vehicle/:recommendationType',
   storeController.getRecommendVehicle
 );
 
+//place-order ==> POST
 router.post('/place-order', storeController.postPlaceOrder);
 
 module.exports = router;

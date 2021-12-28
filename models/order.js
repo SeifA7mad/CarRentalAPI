@@ -60,4 +60,16 @@ const orderSchema = new Schema({
   },
 });
 
+orderSchema.methods.refundOrder = function(refundDetails) {
+  const updatedInvoice = this.invoice;
+  updatedInvoice.amount_captured = 0;
+  updatedInvoice.amount_refunded = refundDetails.amount;
+  updatedInvoice.refunded = true;
+  updatedInvoice.refunds.data.push(refundDetails);
+
+  this.invoice = updatedInvoice;
+
+  return this.save();
+}
+
 module.exports = mongoose.model('Order', orderSchema);
