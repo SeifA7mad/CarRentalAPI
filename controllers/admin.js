@@ -1,4 +1,3 @@
-const vehicle = require('../models/vehicle');
 const Vehicle = require('../models/vehicle');
 
 //POST VEHICLE

@@ -1,6 +1,3 @@
-const mongoose = require('mongoose');
-const vehicle = require('../models/vehicle');
-
 const Vehicle = require('../models/vehicle');
 
 //GET VEHICLES
