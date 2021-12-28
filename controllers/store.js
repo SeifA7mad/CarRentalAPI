@@ -27,8 +27,9 @@ exports.getVehicle = (req, res, next) => {
 exports.getRecommendVehicle = (req, res, next) => {
   const recommendationType = req.params.recommendationType;
   const editedRecommendationType =
-    `${recommendationType}`.charAt(0).toUpperCase() + `${recommendationType}`.slice(1).toLowerCase();
-    
+    `${recommendationType}`.charAt(0).toUpperCase() +
+    `${recommendationType}`.slice(1).toLowerCase();
+
   Vehicle.find(
     { recommendedFor: editedRecommendationType },
     '-createdAt -availableCount -recommendedFor'
