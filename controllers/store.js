@@ -17,9 +17,24 @@ exports.getVehicles = (req, res, next) => {
 exports.getVehicle = (req, res, next) => {
   const vehicleId = req.params.vehicleId;
 
-  Vehicle.findById(vehicleId, '-createdAt -availableCount')
+  Vehicle.findById(vehicleId, '-createdAt -availableCount -recommendedFor')
     .then((vehicle) => {
       res.send(vehicle);
+    })
+    .catch((err) => console.log(err));
+};
+
+exports.getRecommendVehicle = (req, res, next) => {
+  const recommendationType = req.params.recommendationType;
+  const editedRecommendationType =
+    `${recommendationType}`.charAt(0).toUpperCase() + `${recommendationType}`.slice(1).toLowerCase();
+    
+  Vehicle.find(
+    { recommendedFor: editedRecommendationType },
+    '-createdAt -availableCount -recommendedFor'
+  )
+    .then((vehicles) => {
+      res.send(vehicles);
     })
     .catch((err) => console.log(err));
 };

@@ -8,5 +8,10 @@ router.get('/vehicles', storeController.getVehicles);
 //get-vehicle ==> POST
 router.get('/vehicle/:vehicleId', storeController.getVehicle);
 
+//recomend-vehicle
+router.get(
+  '/recommend-vehicle/:recommendationType',
+  storeController.getRecommendVehicle
+);
 
 module.exports = router;

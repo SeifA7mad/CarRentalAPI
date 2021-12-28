@@ -36,6 +36,10 @@ const vehicleSchema = new Schema({
     type: Number,
     required: true,
   },
+  recommendedFor: {
+    type: String,
+    required: false
+  },
   createdAt: {
     type: String
   }

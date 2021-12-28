@@ -11,6 +11,7 @@ exports.postAddVehicle = (req, res, next) => {
   const year = req.body.year;
   const imgURL = req.body.imgURL;
   const availableCount = req.body.availableCount;
+  const recommendedFor = req.body.recommendedFor;
 
   const date = new Date().toLocaleDateString();
 
@@ -24,6 +25,7 @@ exports.postAddVehicle = (req, res, next) => {
     year: year,
     imgURL: imgURL,
     availableCount: availableCount,
+    recommendedFor: recommendedFor,
     createdAt: date,
   });
 
