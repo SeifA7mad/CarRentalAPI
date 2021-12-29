@@ -1,6 +1,7 @@
 const stripe = require('stripe')(process.env.STRIPE_APIKEY);
 const Vehicle = require('../models/vehicle');
 const Order = require('../models/order');
+const order = require('../models/order');
 
 //GET VEHICLES
 exports.getVehicles = (req, res, next) => {
@@ -87,7 +88,9 @@ exports.postPlaceOrder = (req, res, next) => {
   const ongoingReturnDate = req.user.reservations.ongoingReturnDate;
 
   if (ongoingReturnDate != '') {
-    return res.redirect('/store/orders');
+    return res.send({
+      err: 'you have ongoing reservation',
+    });
   }
 
   const vehicleId = req.body.vehicleId;
@@ -103,6 +106,12 @@ exports.postPlaceOrder = (req, res, next) => {
     (returningDateObj.getTime() - pickingDateObj.getTime()) /
     (1000 * 3600 * 24);
 
+  if (reservedDays <= 0) {
+    return res.send({
+      err: 'returning Date must be after picking date',
+    });
+  }
+  
   Vehicle.findById(vehicleId)
     .then((vehicle) => {
       const totalPrice =
@@ -117,21 +126,72 @@ exports.postPlaceOrder = (req, res, next) => {
             const order = await createOrderHelperFunction({
               ...req.body.orderDetails,
               totalPrice: totalPrice,
-              charge: charge,
+              charge: {
+                id: charge.id,
+                amount: charge.amount,
+                paid: charge.paid,
+                refunded: charge.refunded,
+                receipt_email: charge.receipt_email,
+                currency: charge.currency,
+              },
               user: req.user,
-              vehicle: vehicle,
+              vehicle: {
+                _id: vehicle._id,
+                title: vehicle.title,
+                price: vehicle.price,
+              },
             });
             req.user.addNewOrder(order);
             vehicle.useVehicle();
-            res.redirect('/orders');
+            console.log('order placed');
+            return res.redirect('/store/orders');
           } catch (err) {
-            const refund = await stripe.refunds.create({
-              charge: charge.id,
-            });
             console.log(err);
           }
         })
         .catch((err) => console.log(err));
+    })
+    .catch((err) => console.log(err));
+};
+
+//POST CANCELORDER
+exports.postCancelOrder = (req, res, next) => {
+  const orderId = req.body.orderId;
+
+  req.user.populate('reservations.orders.orderId').then((user) => {
+    const orderRemoved = req.user.removeOrder(orderId);
+    if (!orderRemoved) {
+      return res.send({
+        err: 'not an ongoing order to be cancel',
+      });
+    }
+
+    Order.findById(orderId)
+      .then(async (order) => {
+        try {
+          const vehicleId = order.vehicle._id;
+          stripe.refunds.create({
+            charge: order.invoice.id,
+          });
+          order.refundOrder();
+          const newVehicle = await Vehicle.findById(vehicleId);
+          newVehicle.unuseVehicle();
+          console.log('order canceled');
+          return res.redirect('/store/orders');
+        } catch (err) {
+          console.log(err);
+        }
+      })
+      .catch((err) => console.log(err));
+  });
+};
+
+//GET ORDERS
+exports.getOrders = (req, res, next) => {
+  req.user
+    .populate('reservations.orders.orderId')
+    .then((user) => {
+      res.send(user.reservations.orders);
     })
     .catch((err) => console.log(err));
 };

@@ -17,4 +17,10 @@ router.get(
 //place-order ==> POST
 router.post('/place-order', storeController.postPlaceOrder);
 
+//cancel-order ==> POST
+router.post('/cancel-order', storeController.postCancelOrder);
+
+//get-orders ==> GET
+router.get('/orders', storeController.getOrders);
+
 module.exports = router;
