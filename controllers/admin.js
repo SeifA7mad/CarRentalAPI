@@ -31,9 +31,9 @@ exports.postAddVehicle = (req, res, next) => {
 
   vehicle
     .save()
-    .then((results) => {
+    .then((vehicle) => {
       console.log('vehilce added');
-      res.redirect('/admin/vechiles');
+      res.send(vehicle);
     })
     .catch((err) => {
       console.log(err);
@@ -42,8 +42,7 @@ exports.postAddVehicle = (req, res, next) => {
 
 //GET VEHICLES
 exports.getVehicles = (req, res, next) => {
-  Vehicle
-  .find({}, 'title imgURL year availableCount')
+  Vehicle.find({}, 'title imgURL year availableCount')
     .then((vehicles) => {
       res.send(vehicles);
     })
@@ -65,14 +64,18 @@ exports.getVehicle = (req, res, next) => {
 exports.getEditVehicle = (req, res, next) => {
   const editMode = req.query.edit;
   if (!editMode) {
-    return res.redirect('/admin/vehicles');
+    return res.send({
+      err: 'You arenot in edit mode',
+    });
   }
   const vehicleId = req.params.vehicleId;
 
   Vehicle.findById(vehicleId)
     .then((vehicle) => {
       if (!vehicle) {
-        return res.redirect('/admin/vehicles');
+        return res.send({
+          err: 'invalid vehicle id',
+        });
       }
       res.send(vehicle);
     })
@@ -97,11 +100,14 @@ exports.postEditVehicle = (req, res, next) => {
       vehicle.price = updatedPrice;
       vehicle.imgURL = updatedImgURL;
       vehicle.availableCount = updatedAvailableCount;
-      vehicle.save();
-    })
-    .then((results) => {
-      console.log('VEHICLE UPDATED');
-      res.redirect('/admin/vechiles');
+      vehicle
+        .save()
+        .then((newVehicle) => {
+          console.log(newVehicle);
+          console.log('VEHICLE UPDATED');
+          res.send(newVehicle);
+        })
+        .catch((err) => console.log(err));
     })
     .catch((err) => console.log(err));
 };
@@ -113,7 +119,9 @@ exports.postDeleteVehicle = (req, res, next) => {
   Vehicle.findByIdAndDelete(vehicleId)
     .then(() => {
       console.log('VEHICLE DELETED');
-      res.redirect('/admin/vehicles');
+      res.send({
+        success: 'Vehicle Deleted',
+      });
     })
     .catch((err) => console.log(err));
 };

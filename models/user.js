@@ -29,33 +29,6 @@ const userSchema = new Schema({
   },
 });
 
-//mover into store controller
-userSchema.methods.makePayment = async function (paymentDetails, amountToPay) {
-  const { cardNumber, expiryMonth, expiryYear, cardCvc } = paymentDetails;
-  try {
-    const paymentToken = await stripe.tokens.create({
-      card: {
-        number: cardNumber,
-        exp_month: expiryMonth,
-        exp_year: expiryYear,
-        cvc: cardCvc,
-      },
-    });
-
-    const charge = await stripe.charges.create({
-      amount: amountToPay,
-      currency: 'usd',
-      source: paymentToken.id,
-      receipt_email: this.email,
-      capture: true,
-    });
-
-    return charge;
-  } catch (err) {
-    console.log(err);
-  }
-};
-
 userSchema.methods.addNewOrder = function (order) {
   const updatedOrders = [...this.reservations.orders];
   updatedOrders.push({ orderId: order });

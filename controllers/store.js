@@ -1,7 +1,6 @@
 const stripe = require('stripe')(process.env.STRIPE_APIKEY);
 const Vehicle = require('../models/vehicle');
 const Order = require('../models/order');
-const order = require('../models/order');
 
 //GET VEHICLES
 exports.getVehicles = (req, res, next) => {
@@ -77,10 +76,36 @@ const createOrderHelperFunction = (orderDetails) => {
     },
     totalPrice: totalPrice,
     orderDate: date,
-    invoice: charge,
+    invoice: [charge],
   });
 
   return order.save();
+};
+
+//HELPER FUNTION MAKE PAYMENT
+const makePaymentHandler = async (paymentDetails, amountToPay) => {
+  const { cardNumber, expiryMonth, expiryYear, cardCvc } = paymentDetails;
+  try {
+    const paymentToken = await stripe.tokens.create({
+      card: {
+        number: cardNumber,
+        exp_month: expiryMonth,
+        exp_year: expiryYear,
+        cvc: cardCvc,
+      },
+    });
+
+    const charge = await stripe.charges.create({
+      amount: amountToPay,
+      currency: 'usd',
+      source: paymentToken.id,
+      capture: true,
+    });
+
+    return charge;
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 //POST PLACEORDER
@@ -111,7 +136,7 @@ exports.postPlaceOrder = (req, res, next) => {
       err: 'returning Date must be after picking date',
     });
   }
-  
+
   Vehicle.findById(vehicleId)
     .then((vehicle) => {
       const totalPrice =
@@ -119,8 +144,7 @@ exports.postPlaceOrder = (req, res, next) => {
         (requestDriver ? 50 : 0) +
         (requestInsurance ? 100 : 0);
 
-      req.user
-        .makePayment(req.body.paymentDetails, totalPrice)
+      makePaymentHandler(req.body.paymentDetails, totalPrice)
         .then(async (charge) => {
           try {
             const order = await createOrderHelperFunction({
@@ -131,7 +155,6 @@ exports.postPlaceOrder = (req, res, next) => {
                 amount: charge.amount,
                 paid: charge.paid,
                 refunded: charge.refunded,
-                receipt_email: charge.receipt_email,
                 currency: charge.currency,
               },
               user: req.user,
@@ -141,10 +164,12 @@ exports.postPlaceOrder = (req, res, next) => {
                 price: vehicle.price,
               },
             });
-            req.user.addNewOrder(order);
+            await req.user.addNewOrder(order);
             vehicle.useVehicle();
             console.log('order placed');
-            return res.redirect('/store/orders');
+            return res.send({
+              success: 'Order Placed',
+            });
           } catch (err) {
             console.log(err);
           }
@@ -171,13 +196,15 @@ exports.postCancelOrder = (req, res, next) => {
         try {
           const vehicleId = order.vehicle._id;
           stripe.refunds.create({
-            charge: order.invoice.id,
+            charge: order.invoice[0].id,
           });
           order.refundOrder();
           const newVehicle = await Vehicle.findById(vehicleId);
           newVehicle.unuseVehicle();
           console.log('order canceled');
-          return res.redirect('/store/orders');
+          return res.send({
+            success: 'Order Canceled',
+          });
         } catch (err) {
           console.log(err);
         }
@@ -196,25 +223,94 @@ exports.getOrders = (req, res, next) => {
     .catch((err) => console.log(err));
 };
 
-// stripe.checkout.sessions
-//   .create({
-//     success_url: `${process.env.DOMAIN}/store/orders/success`,
-//     cancel_url: `${process.env.DOMAIN}/store/orders/cancel`,
-//     line_items: [
-//       {
-//         price: 'price_1KBjReGdVSlBx0kCIjozI0sr',
-//         quantity: 1,
-//       },
-//     ],
-//     mode: 'payment',
-//     payment_method_types: 'card'
-//   })
-//   .then((payment) => {
-//     console.log(payment);
-//   })
-//   .catch((err) => console.log(err));
+//GET EDITORDER
+exports.getEditOrder = (req, res, next) => {
+  const editMode = req.query.edit;
+  if (!editMode) {
+    return res.send({
+      err: 'You arenot in edit mode',
+    });
+  }
+  const orderId = req.params.orderId;
 
-// const payout = await stripe.payouts.create({
-//       amount: totalPrice,
-//       currency: 'usd',
-//     });
+  const isOrderInUser = req.user.reservations.orders.find(
+    (order) => order.orderId._id.toString() === orderId.toString()
+  );
+
+  if (!isOrderInUser) {
+    return res.send({
+      err: 'invalid order id',
+    });
+  }
+
+  Order.findById(orderId)
+    .then((order) => {
+      if (!order) {
+        return res.send({
+          err: 'invalid order id',
+        });
+      }
+      res.send(order);
+    })
+    .catch((err) => console.log(err));
+};
+
+exports.postEditOrder = (req, res, next) => {
+  const orderId = req.body.orderId;
+
+  const isOrderInUser = req.user.reservations.orders.find(
+    (order) => order.orderId._id.toString() === orderId.toString()
+  );
+
+  if (!isOrderInUser) {
+    return res.send({
+      err: 'invalid order id',
+    });
+  }
+
+  const updatedPickingLocation = req.body.pickingLocation;
+  // const updatedReturningDate = req.body.returningDate;
+  const updatedRequestDriver = req.body.requestDriver;
+  const updatedRequestInsurance = req.body.requestInsurance;
+
+  Order.findById(orderId)
+    .then(async (order) => {
+      let updatedTotalPrice = order.totalPrice;
+      let additionalPrice = 0;
+      updatedRequestDriver.toString() !==
+      order.additionalServices.requestDriver.toString()
+        ? (additionalPrice += 50)
+        : null;
+      updatedRequestInsurance.toString() !==
+      order.additionalServices.requestInsurance.toString()
+        ? (additionalPrice += 100)
+        : null;
+
+      updatedTotalPrice += additionalPrice;
+
+      let charge = null;
+      if (additionalPrice > 0 && req.body.paymentDetails) {
+        try {
+          charge = await makePaymentHandler(
+            req.body.paymentDetails,
+            additionalPrice
+          );
+        } catch (err) {
+          console.log(err);
+        }
+      }
+      order.trackingDetails.requestDriver = updatedRequestDriver;
+      order.trackingDetails.requestInsurance = updatedRequestInsurance;
+      order.trackingDetails.pickingLocation = updatedPickingLocation;
+      order.totalPrice = updatedTotalPrice;
+      order.invoice.push(charge);
+      order
+        .save()
+        .then((newOrder) => {
+          console.log('Order UPDATED');
+          res.send(newOrder);
+        })
+        .catch((err) => console.log(err));
+    })
+    .catch((err) => console.log(err));
+};

@@ -23,4 +23,10 @@ router.post('/cancel-order', storeController.postCancelOrder);
 //get-orders ==> GET
 router.get('/orders', storeController.getOrders);
 
+//update-Order ==> GET
+router.get('/edit-order/:orderId', storeController.getEditOrder);
+
+// update-Order ==> POST
+router.post('/edit-order', storeController.postEditOrder);
+
 module.exports = router;

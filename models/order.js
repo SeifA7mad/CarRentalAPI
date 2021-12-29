@@ -54,17 +54,14 @@ const orderSchema = new Schema({
     type: String,
     required: true,
   },
-  invoice: {
-    type: Object,
-    required: true,
-  },
+  invoice: [],
 });
 
 orderSchema.methods.refundOrder = function() {
-  const updatedInvoice = this.invoice;
+  const updatedInvoice = this.invoice[0];
   updatedInvoice.refunded = true;
 
-  this.invoice = updatedInvoice;
+  this.invoice[0] = updatedInvoice;
 
   return this.save();
 }
