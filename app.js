@@ -32,7 +32,7 @@ app.use(cors());
 
 app.use('/admin', adminRouter);
 app.use('/store', storeRouter);
-app.use(authRouter);
+app.use('/auth', authRouter);
 
 mongoose
   .connect(
