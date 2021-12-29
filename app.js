@@ -8,6 +8,7 @@ const User = require('./models/user');
 
 const adminRouter = require('./routes/admin');
 const storeRouter = require('./routes/store');
+const authRouter = require('./routes/auth');
 
 const serverPort = process.env.SERVER_PORT;
 const DBUser = process.env.DB_USER;
@@ -20,36 +21,24 @@ app.use(bodyParser.json());
 
 app.use(cors());
 
-app.use((req, res, next) => {
-  User.findById('61cbad0dd6258d1f863f04f3')
-    .then((user) => {
-      req.user = user;
-      next();
-    })
-    .catch((err) => console.log(err));
-});
+// app.use((req, res, next) => {
+//   User.findById('61cbad0dd6258d1f863f04f3')
+//     .then((user) => {
+//       req.user = user;
+//       next();
+//     })
+//     .catch((err) => console.log(err));
+// });
 
 app.use('/admin', adminRouter);
 app.use('/store', storeRouter);
+app.use(authRouter);
 
 mongoose
   .connect(
     `mongodb+srv://${DBUser}:${DBPass}@carrentaldb.c5llj.mongodb.net/CarRentalDB?retryWrites=true&w=majority`
   )
   .then((results) => {
-    User.findOne().then((user) => {
-      if (!user) {
-        const user = new User({
-          name: 'Seif',
-          email: 'Seif@test.com',
-          reservations: {
-            orders: [],
-            ongoingReturnDate: '',
-          },
-        });
-        user.save();
-      }
-    });
     app.listen(serverPort, () =>
       console.log(`Server & connection is running om PORT ${serverPort}`)
     );
