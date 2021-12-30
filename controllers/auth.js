@@ -97,3 +97,58 @@ exports.postLogin = (req, res, next) => {
       next(err);
     });
 };
+
+//GET ACCOUNT
+exports.getAccount = (req, res, next) => {
+  User.findById(req.userId)
+    .then((user) => {
+      return res.status(200).json({ name: user.name, email: user.email });
+    })
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
+
+exports.postEditPassword = (req, res, next) => {
+  const oldPassword = req.body.oldPassword;
+  const newPassword = req.body.newPassword;
+  let loadedUser;
+
+  User.findById(req.userId)
+    .then((user) => {
+      loadedUser = user;
+      return bcrypt.compare(oldPassword, user.password);
+    })
+    .then((isPasswordCorrect) => {
+      if (!isPasswordCorrect) {
+        const error = new Error('Wrong password!');
+        error.statusCode = 401;
+        throw error;
+      }
+      if (`${newPassword}`.length < 4) {
+        const error = new Error(
+          'Please enter a valid password must contain atleast 4 letters.'
+        );
+        error.statusCode = 422;
+        throw error;
+      }
+      return bcrypt
+        .hash(newPassword, 12)
+        .then((newHashedPassword) => {
+          loadedUser.password = newHashedPassword;
+          return loadedUser.save();
+        })
+        .then((result) => {
+          return res.status(200).json({ message: 'Account Updated!' });
+        });
+    })
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
