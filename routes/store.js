@@ -25,10 +25,13 @@ router.post('/cancel-order', isAuth, storeController.postCancelOrder);
 //get-orders ==> GET
 router.get('/orders', isAuth, storeController.getOrders);
 
-//update-Order ==> GET
+//edit-order ==> GET
 router.get('/edit-order/:orderId', isAuth, storeController.getEditOrder);
 
-// update-Order ==> POST
+//edit-order ==> POST
 router.post('/edit-order', isAuth, storeController.postEditOrder);
+
+//retrive-mechanic ==> POST
+// router.post('/retrive-mechanics', storeController.postRetriveMechanics);
 
 module.exports = router;

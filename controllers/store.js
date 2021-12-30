@@ -1,8 +1,10 @@
 const stripe = require('stripe')(process.env.STRIPE_APIKEY);
+const axios = require('axios');
 
 const Vehicle = require('../models/vehicle');
 const Order = require('../models/order');
 const User = require('../models/user');
+const { response } = require('express');
 
 //GET VEHICLES
 exports.getVehicles = (req, res, next) => {
@@ -421,3 +423,25 @@ exports.postEditOrder = (req, res, next) => {
       next(err);
     });
 };
+
+// //POST RETRIVEMECHANICS
+// exports.postRetriveMechanics = (req, res, next) => {
+//   const { houseNumber, streetName, city, state, zip, country } = req.body.address;
+
+//   const getLocationRequest = {
+//     method: 'get',
+//     url: `https://maps.googleapis.com/maps/api/geocode/json?address=${houseNumber+streetName+city+state+zip+country}&key=${process.env.GOOGLE_MAPS_APIKEY}`,
+//     headers: {},
+//   };
+
+//   axios(getLocationRequest).then(response => {
+//     const location = JSON.stringify(response.data);
+
+//     return res.status(200).json(location);
+//   }).catch(err => {
+//     if (!err.statusCode) {
+//       err.statusCode = 500;
+//     }
+//     next(err);
+//   });
+// };
