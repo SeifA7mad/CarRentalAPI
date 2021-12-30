@@ -7,7 +7,7 @@ const isAuth = require('../middlewares/is-auth');
 //get-vehicles ==> GET
 router.get('/vehicles', storeController.getVehicles);
 
-//get-vehicle ==> POST
+//get-vehicle ==> GET
 router.get('/vehicle/:vehicleId', storeController.getVehicle);
 
 //recomend-vehicle ==> GET

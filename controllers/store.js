@@ -4,14 +4,13 @@ const axios = require('axios');
 const Vehicle = require('../models/vehicle');
 const Order = require('../models/order');
 const User = require('../models/user');
-const { response } = require('express');
 
 //GET VEHICLES
 exports.getVehicles = (req, res, next) => {
   const filterMode = req.query.filter;
   const sortMode = req.query.sort;
 
-  Vehicle.find({ availableCount: { $gt: 0 } }, 'title imgURL year price')
+  Vehicle.find({ availableCount: { $gt: 0 } }, 'title type imgURL price')
     .sort(filterMode ? [[`${filterMode}`, `${sortMode}`]] : null)
     .then((vehicles) => {
       res.status(200).json(vehicles);
