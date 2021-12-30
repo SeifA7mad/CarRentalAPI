@@ -11,9 +11,13 @@ router.post('/signup', authController.postSignup);
 router.post('/login', authController.postLogin);
 
 //get-account ==> GET
-router.get('/get-account', isAuth, authController.getAccount);
+router.get('/get-account', isAuth.isAuthUser, authController.getAccount);
 
 //post-editPassword ==> POST
-router.post('/edit-password', isAuth, authController.postEditPassword);
+router.post(
+  '/edit-password',
+  isAuth.isAuthUser,
+  authController.postEditPassword
+);
 
 module.exports = router;

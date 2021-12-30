@@ -17,19 +17,27 @@ router.get(
 );
 
 //place-order ==> POST
-router.post('/place-order', isAuth, storeController.postPlaceOrder);
+router.post('/place-order', isAuth.isAuthUser, storeController.postPlaceOrder);
 
 //cancel-order ==> POST
-router.post('/cancel-order', isAuth, storeController.postCancelOrder);
+router.post(
+  '/cancel-order',
+  isAuth.isAuthUser,
+  storeController.postCancelOrder
+);
 
 //get-orders ==> GET
-router.get('/orders', isAuth, storeController.getOrders);
+router.get('/orders', isAuth.isAuthUser, storeController.getOrders);
 
 //edit-order ==> GET
-router.get('/edit-order/:orderId', isAuth, storeController.getEditOrder);
+router.get(
+  '/edit-order/:orderId',
+  isAuth.isAuthUser,
+  storeController.getEditOrder
+);
 
 //edit-order ==> POST
-router.post('/edit-order', isAuth, storeController.postEditOrder);
+router.post('/edit-order', isAuth.isAuthUser, storeController.postEditOrder);
 
 //retrive-mechanic ==> POST
 // router.post('/retrive-mechanics', storeController.postRetriveMechanics);
