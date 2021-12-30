@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const stripe = require('stripe')(process.env.STRIPE_APIKEY);
 
 const Schema = mongoose.Schema;
 

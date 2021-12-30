@@ -33,10 +33,13 @@ exports.postAddVehicle = (req, res, next) => {
     .save()
     .then((vehicle) => {
       console.log('vehilce added');
-      res.send(vehicle);
+      res.status(200).json(vehicle);
     })
     .catch((err) => {
-      console.log(err);
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
     });
 };
 
@@ -44,9 +47,14 @@ exports.postAddVehicle = (req, res, next) => {
 exports.getVehicles = (req, res, next) => {
   Vehicle.find({}, 'title imgURL year availableCount')
     .then((vehicles) => {
-      res.send(vehicles);
+      res.status(200).json(vehicles);
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
 };
 
 //GET VEHICLE
@@ -55,31 +63,41 @@ exports.getVehicle = (req, res, next) => {
 
   Vehicle.findById(vehicleId)
     .then((vehicle) => {
-      res.send(vehicle);
+      res.status(200).json(vehicle);
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
 };
 
 //GET EDIT-VEHICLE
 exports.getEditVehicle = (req, res, next) => {
   const editMode = req.query.edit;
   if (!editMode) {
-    return res.send({
-      err: 'You arenot in edit mode',
-    });
+    const error = new Error('Not in Edit Mode');
+    error.statusCode = 422;
+    throw error;
   }
   const vehicleId = req.params.vehicleId;
 
   Vehicle.findById(vehicleId)
     .then((vehicle) => {
       if (!vehicle) {
-        return res.send({
-          err: 'invalid vehicle id',
-        });
+        const error = new Error('Please enter a valid vehicle id');
+        error.statusCode = 422;
+        throw error;
       }
-      res.send(vehicle);
+      res.status(200).json(vehicle);
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
 };
 
 //POST EDIT-VEHICLE
@@ -94,6 +112,11 @@ exports.postEditVehicle = (req, res, next) => {
 
   Vehicle.findById(vehicleId)
     .then((vehicle) => {
+      if (!vehicle) {
+        const error = new Error('Please enter a valid vehicle id');
+        error.statusCode = 422;
+        throw error;
+      }
       vehicle.type = updatedType;
       vehicle.description = updatedDescription;
       vehicle.rentalInfo = updatedRentalInfo;
@@ -103,13 +126,22 @@ exports.postEditVehicle = (req, res, next) => {
       vehicle
         .save()
         .then((newVehicle) => {
-          console.log(newVehicle);
           console.log('VEHICLE UPDATED');
-          res.send(newVehicle);
+          res.status(200).json(newVehicle);
         })
-        .catch((err) => console.log(err));
+        .catch((err) => {
+          if (!err.statusCode) {
+            err.statusCode = 500;
+          }
+          next(err);
+        });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
 };
 
 //POST DELETE-VEHICLE
@@ -119,9 +151,12 @@ exports.postDeleteVehicle = (req, res, next) => {
   Vehicle.findByIdAndDelete(vehicleId)
     .then(() => {
       console.log('VEHICLE DELETED');
-      res.send({
-        success: 'Vehicle Deleted',
-      });
+      res.status(200).json({message: 'VEHICLE DELETED!'});
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
 };

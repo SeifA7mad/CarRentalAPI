@@ -43,8 +43,7 @@ exports.postSignup = (req, res, next) => {
             name: name,
             email: email,
             password: hashedPassword,
-            reservations: { orders: [] },
-            ongoingReturnDate: '',
+            reservations: { orders: [], ongoingReturnDate: '' },
           });
           return user.save();
         })
