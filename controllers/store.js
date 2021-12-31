@@ -150,6 +150,8 @@ exports.postPlaceOrder = (req, res, next) => {
       const pickingDateObj = new Date(pickingDate);
       const returningDateObj = new Date(returningDate);
 
+      console.log(pickingDateObj);
+
       // get the vehilce reserved days
       const reservedDays =
         (returningDateObj.getTime() - pickingDateObj.getTime()) /
