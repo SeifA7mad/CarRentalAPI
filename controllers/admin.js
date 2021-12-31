@@ -45,7 +45,7 @@ exports.postAddVehicle = (req, res, next) => {
 
 //GET VEHICLES
 exports.getVehicles = (req, res, next) => {
-  Vehicle.find({}, 'title imgURL year availableCount')
+  Vehicle.find({}, 'title imgURL year availableCount price type')
     .then((vehicles) => {
       res.status(200).json(vehicles);
     })

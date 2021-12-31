@@ -165,10 +165,15 @@ exports.postPlaceOrder = (req, res, next) => {
 
       Vehicle.findById(vehicleId)
         .then((vehicle) => {
-          const totalPrice =
-            reservedDays * vehicle.price +
-            (requestDriver ? 50 : 0) +
-            (requestInsurance ? 100 : 0);
+          let totalPrice = reservedDays * vehicle.price;
+
+          if(requestDriver) {
+            totalPrice+= 50;
+          }
+          
+          if (requestInsurance) {
+            totalPrice += 100;
+          }
 
           makePaymentHandler(req.body.paymentDetails, totalPrice)
             .then(async (charge) => {
@@ -188,6 +193,7 @@ exports.postPlaceOrder = (req, res, next) => {
                     _id: vehicle._id,
                     title: vehicle.title,
                     price: vehicle.price,
+                    imgURL: vehicle.imgURL[0],
                   },
                 });
                 await user.addNewOrder(order);
