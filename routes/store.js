@@ -39,7 +39,7 @@ router.get(
 //edit-order ==> POST
 router.post('/edit-order', isAuth.isAuthUser, storeController.postEditOrder);
 
-//retrive-mechanic ==> POST
-// router.post('/retrive-mechanics', storeController.postRetriveMechanics);
+// retrive-mechanic ==> POST
+router.post('/retrive-mechanics', storeController.postRetriveMechanics);
 
 module.exports = router;

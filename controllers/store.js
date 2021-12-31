@@ -167,10 +167,10 @@ exports.postPlaceOrder = (req, res, next) => {
         .then((vehicle) => {
           let totalPrice = reservedDays * vehicle.price;
 
-          if(requestDriver) {
-            totalPrice+= 50;
+          if (requestDriver) {
+            totalPrice += 50;
           }
-          
+
           if (requestInsurance) {
             totalPrice += 100;
           }
@@ -432,23 +432,57 @@ exports.postEditOrder = (req, res, next) => {
 };
 
 // //POST RETRIVEMECHANICS
-// exports.postRetriveMechanics = (req, res, next) => {
-//   const { houseNumber, streetName, city, state, zip, country } = req.body.address;
+exports.postRetriveMechanics = (req, res, next) => {
+  const address = req.body.address;
 
-//   const getLocationRequest = {
-//     method: 'get',
-//     url: `https://maps.googleapis.com/maps/api/geocode/json?address=${houseNumber+streetName+city+state+zip+country}&key=${process.env.GOOGLE_MAPS_APIKEY}`,
-//     headers: {},
-//   };
+  const getLocationRequest = {
+    method: 'get',
+    url: `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${process.env.GOOGLE_MAPS_APIKEY}`,
+    headers: {},
+  };
 
-//   axios(getLocationRequest).then(response => {
-//     const location = JSON.stringify(response.data);
+  axios(getLocationRequest)
+    .then((response) => {
+      const location = response.data;
 
-//     return res.status(200).json(location);
-//   }).catch(err => {
-//     if (!err.statusCode) {
-//       err.statusCode = 500;
-//     }
-//     next(err);
-//   });
-// };
+      if (!location) {
+        const error = new Error('Please enter a valid address');
+        error.statusCode = 422;
+        throw error;
+      }
+
+      return {
+        location: location.results[0].geometry.location,
+        address: location.results[0].formatted_address,
+      };
+    })
+    .then( async (addressResults) => {
+      const getPlacesRequest = {
+        method: 'get',
+        url: `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=-${addressResults.location.lat}%2C${addressResults.location.lng}&radius=10000&type=car_repair&keyword=cruise&key=${process.env.GOOGLE_MAPS_APIKEY}`,
+      };
+
+      const response = await axios(getPlacesRequest);
+
+      const places = response.data.results.map((place) => {
+        return {
+          placeName: place.name,
+          id: place.place_id,
+          vicinity: place.vicinity,
+        }
+      });
+      return res.status(200).json(places);
+    })
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    })
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
