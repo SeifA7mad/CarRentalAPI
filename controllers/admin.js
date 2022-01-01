@@ -109,6 +109,7 @@ exports.postEditVehicle = (req, res, next) => {
   const updatedPrice = req.body.price;
   const updatedImgURL = req.body.imgURL;
   const updatedAvailableCount = req.body.availableCount;
+  const updatedRecommendedFor = req.body.recommendedFor;
 
   Vehicle.findById(vehicleId)
     .then((vehicle) => {
@@ -123,6 +124,7 @@ exports.postEditVehicle = (req, res, next) => {
       vehicle.price = updatedPrice;
       vehicle.imgURL = updatedImgURL;
       vehicle.availableCount = updatedAvailableCount;
+      vehicle.recommendedFor = updatedRecommendedFor;
       vehicle
         .save()
         .then((newVehicle) => {
