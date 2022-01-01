@@ -1,0 +1,16 @@
+POST http://localhost:3000/admin/add-vehicle HTTP/1.1
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNlaWZAdGVzdC5jb20iLCJ1c2VySWQiOiI2MWNkMGE5MjVjZDJhYjEwZTMyMzBmMWQiLCJpYXQiOjE2NDA5OTg5NTQsImV4cCI6MTY0MTAwMjU1NH0.o9-m6M8HPNiIKA-pkRbwMrsCqWQDhIjUGfc-nGg4Oi4
+
+{
+    "title": "M3",
+    "manufacture": "BMW",
+    "type": "Sedan",
+    "description": "Beautiful",
+    "rentalInfo": "new",
+    "price": "500",
+    "year": "2021",
+    "imgURL": ["https://www.carlogos.org/car-logos/bmw-logo-2020-blue-white.png"],
+    "availableCount": 2,
+    "recommendedFor": "companies"
+}

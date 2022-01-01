@@ -1,0 +1,20 @@
+POST http://localhost:3000/store/place-order HTTP/1.1
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNlaWZAdGVzdC5jb20iLCJ1c2VySWQiOiI2MWNkMGE5MjVjZDJhYjEwZTMyMzBmMWQiLCJpYXQiOjE2NDA5Nzg2MzcsImV4cCI6MTY0MDk4MjIzN30.ggRYgN4hhy7629qDiSo_PkZcvZ4bw9yrHtPB7zFx7Qo
+
+{
+    "vehicleId": "61ca63bb9201697241c340eb",
+    "orderDetails": {
+        "pickingDate": "12/28/2021",
+        "returningDate": "12/30/2021",
+        "pickingLocation": "office",
+        "requestDriver": "true",
+        "requestInsurance": "false"
+    },
+    "paymentDetails": {
+        "cardNumber": "4242424242424242",
+        "expiryMonth": "12",
+        "expiryYear": "2022",
+        "cardCvc": "314"
+    }
+}

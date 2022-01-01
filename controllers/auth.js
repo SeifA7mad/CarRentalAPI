@@ -88,6 +88,7 @@ exports.postLogin = (req, res, next) => {
         process.env.ENCRYPT_SECRET,
         { expiresIn: '1h' }
       );
+      console.log({ token: token, userId: loadedUser._id.toString() });
       res.status(200).json({ token: token, userId: loadedUser._id.toString() });
     })
     .catch((err) => {
